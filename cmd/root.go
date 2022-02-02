@@ -6,16 +6,32 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime/debug"
+	"strings"
+	"time"
 
 	"github.com/airfocusio/go-template/internal"
 )
 
-func run(dir string, opts internal.RenderOptions) error {
+var valueFlags arrayFlags
+
+func Execute(version FullVersion) error {
+	flag.Var(&valueFlags, "value", "Provide values like key=value (can be repeated)")
+	flag.Parse()
+
+	opts := buildRenderData()
+	err := run(opts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func run(data internal.RenderData) error {
 	input, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return fmt.Errorf("unable to read stdin: %w", err)
 	}
-	output, err := internal.Render(dir, opts, string(input))
+	output, err := internal.Render(data, string(input))
 	if err != nil {
 		return fmt.Errorf("unable to generate version: %w", err)
 	}
@@ -23,18 +39,26 @@ func run(dir string, opts internal.RenderOptions) error {
 	return nil
 }
 
-func Execute(version FullVersion) error {
-	flag.Parse()
-	dir, err := os.Getwd()
-	if err != nil {
-		return err
+func buildRenderData() internal.RenderData {
+	val := map[string]string{}
+	for _, entry := range valueFlags {
+		segments := strings.SplitN(entry, "=", 2)
+		key := segments[0]
+		value := ""
+		if len(segments) == 2 {
+			value = segments[1]
+		}
+		val[key] = value
 	}
-	opts := internal.RenderOptions{}
-	err = run(dir, opts)
-	if err != nil {
-		return err
+
+	env := map[string]string{}
+	for _, envEntry := range os.Environ() {
+		envEntryParts := strings.SplitN(envEntry, "=", 2)
+		key := envEntryParts[0]
+		value := envEntryParts[1]
+		env[key] = value
 	}
-	return nil
+	return internal.RenderData{Now: time.Now(), Val: val, Env: env}
 }
 
 type FullVersion struct {

@@ -7,4 +7,5 @@ Simple binary to use Go's [template engine](https://pkg.go.dev/text/template). J
 | Key                              | Value                                          |
 |----------------------------------|------------------------------------------------|
 | `.Now`                           | Current timestamp                              |
-| `.Env.HOME`                      | Retrieve any environment variable              |
+| `.Val.some`                      | Retrieve any value provided via CLI argument   |
+| `.Env.SOME`                      | Retrieve any environment variable              |

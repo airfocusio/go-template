@@ -3,21 +3,19 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 	"text/template"
 	"time"
 )
 
-type RenderOptions struct{}
-
 type RenderData struct {
 	Now time.Time
+	Val map[string]string
 	Env map[string]string
 }
 
-func Render(dir string, opts RenderOptions, input string) (*string, error) {
+func Render(data RenderData, input string) (*string, error) {
 	tmpl, err := template.New("template").Funcs(funcMap).Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse template: %w", err)
@@ -26,23 +24,12 @@ func Render(dir string, opts RenderOptions, input string) (*string, error) {
 	if buf == nil {
 		return nil, fmt.Errorf("unable to initialize render buffer")
 	}
-	err = tmpl.Execute(buf, BuildRenderData())
+	err = tmpl.Execute(buf, data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to render template: %w", err)
 	}
 	output := buf.String()
 	return &output, nil
-}
-
-func BuildRenderData() RenderData {
-	env := map[string]string{}
-	for _, envEntry := range os.Environ() {
-		envEntryParts := strings.SplitN(envEntry, "=", 2)
-		key := envEntryParts[0]
-		value := envEntryParts[1]
-		env[key] = value
-	}
-	return RenderData{Now: time.Now(), Env: env}
 }
 
 // recovery will silently swallow all unexpected panics.
