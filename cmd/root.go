@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"runtime/debug"
 
@@ -11,12 +11,11 @@ import (
 )
 
 func run(dir string, opts internal.RenderOptions) error {
-	reader := bufio.NewReader(os.Stdin)
-	input, err := reader.ReadString('\n')
+	input, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return fmt.Errorf("unable to read stdin: %w", err)
 	}
-	output, err := internal.Render(dir, opts, input)
+	output, err := internal.Render(dir, opts, string(input))
 	if err != nil {
 		return fmt.Errorf("unable to generate version: %w", err)
 	}
