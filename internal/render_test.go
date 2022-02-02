@@ -26,4 +26,17 @@ func TestSemVerString(t *testing.T) {
 	test("a", "a", map[string]string{})
 	test("a\nb\n", "a\nb\n", map[string]string{})
 	test(`Hello, {{ .Env.NAME }}!`, "Hello, Tom!", map[string]string{"NAME": "Tom"})
+
+	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = fallback", map[string]string{})
+	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = provided", map[string]string{"VALUE": "provided"})
+
+	test(`Value = {{ "Hello World" | replace "Hello" "Bye" }}`, "Value = Bye", map[string]string{})
+
+	test(`Value = {{ "foo" | length }}`, "Value = 3", map[string]string{})
+
+	test(`Value = {{ "FOO" | lower }}`, "Value = foo", map[string]string{})
+
+	test(`Value = {{ "foo" | upper }}`, "Value = FOO", map[string]string{})
+
+	test(`Value = {{ "  foo  " | trim }}`, "Value = foo", map[string]string{})
 }
