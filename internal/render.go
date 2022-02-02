@@ -3,7 +3,6 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"math/rand"
 	"os"
 	"reflect"
 	"strings"
@@ -107,78 +106,18 @@ var funcMap = template.FuncMap{
 
 		return strings.TrimSpace(s)
 	},
-	"first": func(value interface{}) interface{} {
+	"bool": func(value interface{}) bool {
 		defer recovery()
 
 		v := reflect.ValueOf(value)
-
 		switch v.Kind() {
+		case reflect.Bool:
+			return v.Bool()
 		case reflect.String:
-			return string([]rune(v.String())[0])
-		case reflect.Slice, reflect.Array:
-			return v.Index(0).Interface()
+			lower := strings.ToLower(v.String())
+			return lower == "1" || lower == "yes" || lower == "true"
 		}
 
-		return ""
-	},
-	"last": func(value interface{}) interface{} {
-		defer recovery()
-
-		v := reflect.ValueOf(value)
-
-		switch v.Kind() {
-		case reflect.String:
-			str := []rune(v.String())
-			return string(str[len(str)-1])
-		case reflect.Slice, reflect.Array:
-			return v.Index(v.Len() - 1).Interface()
-		}
-
-		return ""
-	},
-	"slice": func(start int, end int, value interface{}) interface{} {
-		defer recovery()
-
-		v := reflect.ValueOf(value)
-
-		if start < 0 {
-			start = 0
-		}
-
-		switch v.Kind() {
-		case reflect.String:
-			str := []rune(v.String())
-
-			if end > len(str) {
-				end = len(str)
-			}
-
-			return string(str[start:end])
-		case reflect.Slice:
-			return v.Slice(start, end).Interface()
-		}
-		return ""
-	},
-	"join": func(arg string, value []string) string {
-		defer recovery()
-
-		return strings.Join(value, arg)
-	},
-	"random": func(value interface{}) interface{} {
-		defer recovery()
-
-		rand.Seed(time.Now().UTC().UnixNano())
-
-		v := reflect.ValueOf(value)
-
-		switch v.Kind() {
-		case reflect.String:
-			str := []rune(v.String())
-			return string(str[rand.Intn(len(str))])
-		case reflect.Slice, reflect.Array:
-			return v.Index(rand.Intn(v.Len())).Interface()
-		}
-
-		return ""
+		return false
 	},
 }

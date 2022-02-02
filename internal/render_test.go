@@ -39,4 +39,16 @@ func TestSemVerString(t *testing.T) {
 	test(`Value = {{ "foo" | upper }}`, "Value = FOO", map[string]string{})
 
 	test(`Value = {{ "  foo  " | trim }}`, "Value = foo", map[string]string{})
+
+	test(`Value = {{ "0" | bool }}`, "Value = false", map[string]string{})
+	test(`Value = {{ "1" | bool }}`, "Value = true", map[string]string{})
+	test(`Value = {{ "no" | bool }}`, "Value = false", map[string]string{})
+	test(`Value = {{ "yes" | bool }}`, "Value = true", map[string]string{})
+	test(`Value = {{ "YES" | bool }}`, "Value = true", map[string]string{})
+	test(`Value = {{ "false" | bool }}`, "Value = false", map[string]string{})
+	test(`Value = {{ "true" | bool }}`, "Value = true", map[string]string{})
+	test(`Value = {{ "TRUE" | bool }}`, "Value = true", map[string]string{})
+
+	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = no", map[string]string{"ENABLE": "0"})
+	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = yes", map[string]string{"ENABLE": "1"})
 }
