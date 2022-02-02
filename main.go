@@ -17,7 +17,7 @@ var (
 
 func main() {
 	if err := cmd.Execute(cmd.FullVersion{Version: version, Commit: commit, Date: date, BuiltBy: builtBy}); err != nil {
-		fmt.Printf("%v\n", err)
+		os.Stderr.WriteString(fmt.Sprintf("%v\n", err))
 		os.Exit(1)
 	}
 }
