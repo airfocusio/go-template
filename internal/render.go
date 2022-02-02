@@ -120,4 +120,10 @@ var funcMap = template.FuncMap{
 
 		return false
 	},
+	"require": func(value interface{}) (interface{}, error) {
+		if value == nil {
+			return nil, fmt.Errorf("value is missing")
+		}
+		return value, nil
+	},
 }

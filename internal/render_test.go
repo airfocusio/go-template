@@ -21,6 +21,16 @@ func TestSemVerString(t *testing.T) {
 			os.Unsetenv(key)
 		}
 	}
+	testError := func(input string, env map[string]string) {
+		for key, value := range env {
+			os.Setenv(key, value)
+		}
+		_, err := Render(".", RenderOptions{}, input)
+		assert.Error(err)
+		for key := range env {
+			os.Unsetenv(key)
+		}
+	}
 
 	test("", "", map[string]string{})
 	test("a", "a", map[string]string{})
@@ -51,4 +61,7 @@ func TestSemVerString(t *testing.T) {
 
 	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = no", map[string]string{"ENABLE": "0"})
 	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = yes", map[string]string{"ENABLE": "1"})
+
+	test(`Value = {{ require .Env.VALUE }}`, "Value = foo", map[string]string{"VALUE": "foo"})
+	testError(`Value = {{ require .Env.MISSING }}`, map[string]string{"VALUE": "foo"})
 }
