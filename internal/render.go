@@ -6,12 +6,10 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
-	"time"
 )
 
 type RenderData struct {
-	Now time.Time
-	Val map[string]string
+	Val map[string]interface{}
 	Env map[string]string
 }
 

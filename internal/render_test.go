@@ -24,7 +24,8 @@ func TestSemVerString(t *testing.T) {
 	test("a\nb\n", "a\nb\n", RenderData{})
 
 	test(`Hello, {{ .Env.NAME }}!`, "Hello, Tom!", RenderData{Env: map[string]string{"NAME": "Tom"}})
-	test(`Hello, {{ .Val.name }}!`, "Hello, Tom!", RenderData{Val: map[string]string{"name": "Tom"}})
+	test(`Hello, {{ .Val.name }}!`, "Hello, Tom!", RenderData{Val: map[string]interface{}{"name": "Tom"}})
+	test(`Hello, {{ .Val.person.name }}!`, "Hello, Tom!", RenderData{Val: map[string]interface{}{"person": map[string]interface{}{"name": "Tom"}}})
 
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = fallback", RenderData{})
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = provided", RenderData{Env: map[string]string{"VALUE": "provided"}})

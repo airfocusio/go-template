@@ -3,44 +3,49 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"runtime/debug"
 	"strings"
-	"time"
 
 	"github.com/airfocusio/go-template/internal"
+	"gopkg.in/yaml.v3"
 )
 
-var valueFlags arrayFlags
-
 func Execute(version FullVersion) error {
+	var valueFlags arrayFlags
 	flag.Var(&valueFlags, "value", "Provide values like key=value (can be repeated)")
+	var valueFileFlags arrayFlags
+	flag.Var(&valueFileFlags, "value-file", "Provide value files with yaml (can be repeated)")
 	flag.Parse()
 
-	opts := buildRenderData()
-	err := run(opts)
+	data, err := BuildRenderData(valueFlags, valueFileFlags)
+	if err != nil {
+		return err
+	}
+	err = Run(os.Stdin, os.Stdout, *data)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func run(data internal.RenderData) error {
-	input, err := ioutil.ReadAll(os.Stdin)
+func Run(stdin io.Reader, stdout io.Writer, data internal.RenderData) error {
+	input, err := ioutil.ReadAll(stdin)
 	if err != nil {
 		return fmt.Errorf("unable to read stdin: %w", err)
 	}
 	output, err := internal.Render(data, string(input))
 	if err != nil {
-		return fmt.Errorf("unable to generate version: %w", err)
+		return fmt.Errorf("unable to render: %w", err)
 	}
-	os.Stdout.Write([]byte(*output))
+	stdout.Write([]byte(*output))
 	return nil
 }
 
-func buildRenderData() internal.RenderData {
-	val := map[string]string{}
+func BuildRenderData(valueFlags arrayFlags, valueFileFlags arrayFlags) (*internal.RenderData, error) {
+	val := map[string]interface{}{}
 	for _, entry := range valueFlags {
 		segments := strings.SplitN(entry, "=", 2)
 		key := segments[0]
@@ -51,6 +56,22 @@ func buildRenderData() internal.RenderData {
 		val[key] = value
 	}
 
+	for _, file := range valueFileFlags {
+		yamlBytes, err := ioutil.ReadFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build render data: %w", err)
+		}
+		var yamlValue map[string]interface{}
+		err = yaml.Unmarshal(yamlBytes, &yamlValue)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build render data: %w", err)
+		}
+
+		for k, v := range yamlValue {
+			val[k] = v
+		}
+	}
+
 	env := map[string]string{}
 	for _, envEntry := range os.Environ() {
 		envEntryParts := strings.SplitN(envEntry, "=", 2)
@@ -58,7 +79,7 @@ func buildRenderData() internal.RenderData {
 		value := envEntryParts[1]
 		env[key] = value
 	}
-	return internal.RenderData{Now: time.Now(), Val: val, Env: env}
+	return &internal.RenderData{Val: val, Env: env}, nil
 }
 
 type FullVersion struct {
