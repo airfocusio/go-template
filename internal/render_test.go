@@ -14,9 +14,9 @@ func TestSemVerString(t *testing.T) {
 			assert.Equal(expectedOutput, *actualOutput)
 		}
 	}
-	testError := func(input string, data RenderData) {
+	testError := func(input string, data RenderData, errorMessage string) {
 		_, err := Render(data, input)
-		assert.Error(err)
+		assert.EqualError(err, errorMessage)
 	}
 
 	test("", "", RenderData{})
@@ -30,15 +30,7 @@ func TestSemVerString(t *testing.T) {
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = fallback", RenderData{})
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = provided", RenderData{Env: map[string]string{"VALUE": "provided"}})
 
-	test(`Value = {{ "Hello World" | replace "Hello" "Bye" }}`, "Value = Bye", RenderData{})
-
-	test(`Value = {{ "foo" | length }}`, "Value = 3", RenderData{})
-
-	test(`Value = {{ "FOO" | lower }}`, "Value = foo", RenderData{})
-
-	test(`Value = {{ "foo" | upper }}`, "Value = FOO", RenderData{})
-
-	test(`Value = {{ "  foo  " | trim }}`, "Value = foo", RenderData{})
+	test(`Value = {{ "Hello World" | replace "Hello" "Bye" }}`, "Value = Bye World", RenderData{})
 
 	test(`Value = {{ "0" | bool }}`, "Value = false", RenderData{})
 	test(`Value = {{ "1" | bool }}`, "Value = true", RenderData{})
@@ -52,6 +44,6 @@ func TestSemVerString(t *testing.T) {
 	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = no", RenderData{Env: map[string]string{"ENABLE": "0"}})
 	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = yes", RenderData{Env: map[string]string{"ENABLE": "1"}})
 
-	test(`Value = {{ require .Env.VALUE }}`, "Value = foo", RenderData{Env: map[string]string{"VALUE": "foo"}})
-	testError(`Value = {{ require .Env.MISSING }}`, RenderData{Env: map[string]string{"VALUE": "foo"}})
+	test(`Value = {{ .Env.VALUE | required "missing" }}`, "Value = foo", RenderData{Env: map[string]string{"VALUE": "foo"}})
+	testError(`Value = {{ .Env.MISSING | required "missing" }}`, RenderData{Env: map[string]string{"VALUE": "foo"}}, "unable to render template: template: template:1:26: executing \"template\" at <required \"missing\">: error calling required: missing")
 }

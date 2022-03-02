@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
 )
 
 type RenderData struct {
@@ -14,7 +16,7 @@ type RenderData struct {
 }
 
 func Render(data RenderData, input string) (*string, error) {
-	tmpl, err := template.New("template").Funcs(funcMap).Parse(input)
+	tmpl, err := template.New("template").Funcs(funcMap()).Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse template: %w", err)
 	}
@@ -30,85 +32,42 @@ func Render(data RenderData, input string) (*string, error) {
 	return &output, nil
 }
 
-// recovery will silently swallow all unexpected panics.
-func recovery() {
-	recover()
+func funcMap() template.FuncMap {
+	f := sprig.TxtFuncMap()
+	delete(f, "env")
+	delete(f, "expandenv")
+
+	extra := template.FuncMap{
+		"required": fnRequired,
+		"bool":     fnBool,
+	}
+
+	for k, v := range extra {
+		f[k] = v
+	}
+
+	return f
+
 }
 
-// inspired by https://github.com/leekchan/gtf
-var funcMap = template.FuncMap{
-	"default": func(arg interface{}, value interface{}) interface{} {
-		defer recovery()
+func fnRequired(warn string, val interface{}) (interface{}, error) {
+	if val == nil {
+		return val, fmt.Errorf(warn)
+	} else if val, ok := val.(string); ok && val == "" {
+		return val, fmt.Errorf(warn)
+	}
+	return val, nil
+}
 
-		v := reflect.ValueOf(value)
-		switch v.Kind() {
-		case reflect.Invalid:
-			return arg
-		case reflect.String, reflect.Slice, reflect.Array, reflect.Map:
-			if v.Len() == 0 {
-				return arg
-			}
-		case reflect.Bool:
-			if !v.Bool() {
-				return arg
-			}
-		default:
-			return value
-		}
+func fnBool(value interface{}) bool {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Bool:
+		return v.Bool()
+	case reflect.String:
+		lower := strings.ToLower(v.String())
+		return lower == "1" || lower == "yes" || lower == "true"
+	}
 
-		return value
-	},
-	"replace": func(s1 string, s2 string, s3 string) string {
-		defer recovery()
-
-		return strings.Replace(s2, s1, s3, -1)
-	},
-	"length": func(value interface{}) int {
-		defer recovery()
-
-		v := reflect.ValueOf(value)
-		switch v.Kind() {
-		case reflect.Slice, reflect.Array, reflect.Map:
-			return v.Len()
-		case reflect.String:
-			return len([]rune(v.String()))
-		}
-
-		return 0
-	},
-	"lower": func(s string) string {
-		defer recovery()
-
-		return strings.ToLower(s)
-	},
-	"upper": func(s string) string {
-		defer recovery()
-
-		return strings.ToUpper(s)
-	},
-	"trim": func(s string) string {
-		defer recovery()
-
-		return strings.TrimSpace(s)
-	},
-	"bool": func(value interface{}) bool {
-		defer recovery()
-
-		v := reflect.ValueOf(value)
-		switch v.Kind() {
-		case reflect.Bool:
-			return v.Bool()
-		case reflect.String:
-			lower := strings.ToLower(v.String())
-			return lower == "1" || lower == "yes" || lower == "true"
-		}
-
-		return false
-	},
-	"require": func(value interface{}) (interface{}, error) {
-		if value == nil {
-			return nil, fmt.Errorf("value is missing")
-		}
-		return value, nil
-	},
+	return false
 }

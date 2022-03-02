@@ -8,3 +8,7 @@ Simple binary to use Go's [template engine](https://pkg.go.dev/text/template). J
 |----------------------------------|-------------------------------------------------------------|
 | `.Val.some`                      | Retrieve any value provided via CLI argument or yaml file   |
 | `.Env.SOME`                      | Retrieve any environment variable                           |
+
+## Functions
+
+Uses [sprig](https://github.com/Masterminds/sprig) and adds the `required` function known from [Helm](https://github.com/helm/helm).
