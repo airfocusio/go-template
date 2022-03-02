@@ -9,7 +9,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/airfocusio/go-template/internal"
+	"github.com/airfocusio/go-template/pkg"
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,12 +31,12 @@ func Execute(version FullVersion) error {
 	return nil
 }
 
-func Run(stdin io.Reader, stdout io.Writer, data internal.RenderData) error {
+func Run(stdin io.Reader, stdout io.Writer, data pkg.RenderData) error {
 	input, err := ioutil.ReadAll(stdin)
 	if err != nil {
 		return fmt.Errorf("unable to read stdin: %w", err)
 	}
-	output, err := internal.Render(data, string(input))
+	output, err := pkg.Render(data, string(input))
 	if err != nil {
 		return fmt.Errorf("unable to render: %w", err)
 	}
@@ -44,7 +44,7 @@ func Run(stdin io.Reader, stdout io.Writer, data internal.RenderData) error {
 	return nil
 }
 
-func BuildRenderData(valueFlags arrayFlags, valueFileFlags arrayFlags) (*internal.RenderData, error) {
+func BuildRenderData(valueFlags arrayFlags, valueFileFlags arrayFlags) (*pkg.RenderData, error) {
 	val := map[string]interface{}{}
 	for _, entry := range valueFlags {
 		segments := strings.SplitN(entry, "=", 2)
@@ -79,7 +79,7 @@ func BuildRenderData(valueFlags arrayFlags, valueFileFlags arrayFlags) (*interna
 		value := envEntryParts[1]
 		env[key] = value
 	}
-	return &internal.RenderData{Val: val, Env: env}, nil
+	return &pkg.RenderData{Val: val, Env: env}, nil
 }
 
 type FullVersion struct {

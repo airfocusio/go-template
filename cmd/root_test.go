@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/airfocusio/go-template/internal"
+	"github.com/airfocusio/go-template/pkg"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ func TestRun(t *testing.T) {
 	inputReader := strings.NewReader(input)
 	var outputBytes bytes.Buffer
 	outputWriter := io.Writer(&outputBytes)
-	err := Run(inputReader, outputWriter, internal.RenderData{
+	err := Run(inputReader, outputWriter, pkg.RenderData{
 		Val: map[string]interface{}{
 			"message": "World",
 		},
@@ -51,7 +51,7 @@ apple: pie
 	data, err := BuildRenderData(valueFlags, valueFileFlags)
 	assert.NoError(t, err)
 
-	assert.Equal(t, internal.RenderData{
+	assert.Equal(t, pkg.RenderData{
 		Val: map[string]interface{}{
 			"some": "thing",
 			"persons": []interface{}{
