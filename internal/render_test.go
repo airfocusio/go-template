@@ -30,20 +30,6 @@ func TestSemVerString(t *testing.T) {
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = fallback", RenderData{})
 	test(`Value = {{ .Env.VALUE | default "fallback" }}`, "Value = provided", RenderData{Env: map[string]string{"VALUE": "provided"}})
 
-	test(`Value = {{ "Hello World" | replace "Hello" "Bye" }}`, "Value = Bye World", RenderData{})
-
-	test(`Value = {{ "0" | bool }}`, "Value = false", RenderData{})
-	test(`Value = {{ "1" | bool }}`, "Value = true", RenderData{})
-	test(`Value = {{ "no" | bool }}`, "Value = false", RenderData{})
-	test(`Value = {{ "yes" | bool }}`, "Value = true", RenderData{})
-	test(`Value = {{ "YES" | bool }}`, "Value = true", RenderData{})
-	test(`Value = {{ "false" | bool }}`, "Value = false", RenderData{})
-	test(`Value = {{ "true" | bool }}`, "Value = true", RenderData{})
-	test(`Value = {{ "TRUE" | bool }}`, "Value = true", RenderData{})
-
-	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = no", RenderData{Env: map[string]string{"ENABLE": "0"}})
-	test(`Value = {{ if .Env.ENABLE | bool }}yes{{ else }}no{{ end }}`, "Value = yes", RenderData{Env: map[string]string{"ENABLE": "1"}})
-
 	test(`Value = {{ .Env.VALUE | required "missing" }}`, "Value = foo", RenderData{Env: map[string]string{"VALUE": "foo"}})
 	testError(`Value = {{ .Env.MISSING | required "missing" }}`, RenderData{Env: map[string]string{"VALUE": "foo"}}, "unable to render template: template: template:1:26: executing \"template\" at <required \"missing\">: error calling required: missing")
 }

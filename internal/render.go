@@ -3,8 +3,6 @@ package internal
 import (
 	"bytes"
 	"fmt"
-	"reflect"
-	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -39,7 +37,6 @@ func funcMap() template.FuncMap {
 
 	extra := template.FuncMap{
 		"required": fnRequired,
-		"bool":     fnBool,
 	}
 
 	for k, v := range extra {
@@ -57,17 +54,4 @@ func fnRequired(warn string, val interface{}) (interface{}, error) {
 		return val, fmt.Errorf(warn)
 	}
 	return val, nil
-}
-
-func fnBool(value interface{}) bool {
-	v := reflect.ValueOf(value)
-	switch v.Kind() {
-	case reflect.Bool:
-		return v.Bool()
-	case reflect.String:
-		lower := strings.ToLower(v.String())
-		return lower == "1" || lower == "yes" || lower == "true"
-	}
-
-	return false
 }
