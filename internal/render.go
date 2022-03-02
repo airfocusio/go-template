@@ -14,7 +14,7 @@ type RenderData struct {
 }
 
 func Render(data RenderData, input string) (*string, error) {
-	tmpl, err := template.New("template").Funcs(funcMap()).Parse(input)
+	tmpl, err := template.New("template").Funcs(FuncMap()).Parse(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse template: %w", err)
 	}
@@ -30,7 +30,7 @@ func Render(data RenderData, input string) (*string, error) {
 	return &output, nil
 }
 
-func funcMap() template.FuncMap {
+func FuncMap() template.FuncMap {
 	f := sprig.TxtFuncMap()
 	delete(f, "env")
 	delete(f, "expandenv")
