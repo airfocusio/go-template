@@ -32,4 +32,13 @@ func TestSemVerString(t *testing.T) {
 
 	test(`Value = {{ .Env.VALUE | required "missing" }}`, "Value = foo", RenderData{Env: map[string]string{"VALUE": "foo"}})
 	testError(`Value = {{ .Env.MISSING | required "missing" }}`, RenderData{Env: map[string]string{"VALUE": "foo"}}, "unable to render template: template: template:1:26: executing \"template\" at <required \"missing\">: error calling required: missing")
+
+	test(`{{ .Val.data | toJson }}`, "{\"foo\":\"bar\"}", RenderData{Val: map[string]interface{}{"data": map[string]interface{}{"foo": "bar"}}})
+	test(`{{ .Val.data | toPrettyJson }}`, "{\n  \"foo\": \"bar\"\n}", RenderData{Val: map[string]interface{}{"data": map[string]interface{}{"foo": "bar"}}})
+	test(`{{ (.Val.data | fromJson).foo }}`, "bar", RenderData{Val: map[string]interface{}{"data": "{\"foo\":\"bar\"}"}})
+	test(`{{ index (.Val.data | fromJsonArray) 1 }}`, "bar", RenderData{Val: map[string]interface{}{"data": "[\"foo\",\"bar\"]"}})
+
+	test(`{{ .Val.data | toYaml }}`, "foo: bar", RenderData{Val: map[string]interface{}{"data": map[string]interface{}{"foo": "bar"}}})
+	test(`{{ (.Val.data | fromYaml).foo }}`, "bar", RenderData{Val: map[string]interface{}{"data": "foo: bar"}})
+	test(`{{ index (.Val.data | fromYamlArray) 1 }}`, "bar", RenderData{Val: map[string]interface{}{"data": "- foo\n- bar"}})
 }

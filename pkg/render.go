@@ -2,10 +2,14 @@ package pkg
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"gopkg.in/yaml.v3"
 )
 
 type RenderData struct {
@@ -36,7 +40,14 @@ func FuncMap() template.FuncMap {
 	delete(f, "expandenv")
 
 	extra := template.FuncMap{
-		"required": fnRequired,
+		"required":      required,
+		"toJson":        toJson,
+		"toPrettyJson":  toPrettyJson,
+		"fromJson":      fromJson,
+		"fromJsonArray": fromJsonArray,
+		"toYaml":        toYaml,
+		"fromYaml":      fromYaml,
+		"fromYamlArray": fromYamlArray,
 	}
 
 	for k, v := range extra {
@@ -44,14 +55,65 @@ func FuncMap() template.FuncMap {
 	}
 
 	return f
-
 }
 
-func fnRequired(warn string, val interface{}) (interface{}, error) {
+func logError(err error) {
+	if err != nil {
+		os.Stderr.Write([]byte(fmt.Sprintf("Warn: %v\n", err)))
+	}
+}
+
+func required(warn string, val interface{}) (interface{}, error) {
 	if val == nil {
 		return val, fmt.Errorf(warn)
 	} else if val, ok := val.(string); ok && val == "" {
 		return val, fmt.Errorf(warn)
 	}
 	return val, nil
+}
+
+func toJson(v interface{}) string {
+	data, err := json.Marshal(v)
+	logError(err)
+	return strings.TrimSuffix(string(data), "\n")
+}
+
+func toPrettyJson(v interface{}) string {
+	output, err := json.MarshalIndent(v, "", "  ")
+	logError(err)
+	return string(output)
+}
+
+func fromJson(str string) map[string]interface{} {
+	data := make(map[string]interface{})
+	err := json.Unmarshal([]byte(str), &data)
+	logError(err)
+	return data
+}
+
+func fromJsonArray(str string) []interface{} {
+	data := []interface{}{}
+	err := json.Unmarshal([]byte(str), &data)
+	logError(err)
+	return data
+}
+
+func toYaml(v interface{}) string {
+	data, err := yaml.Marshal(v)
+	logError(err)
+	return strings.TrimSuffix(string(data), "\n")
+}
+
+func fromYaml(str string) map[string]interface{} {
+	data := map[string]interface{}{}
+	err := yaml.Unmarshal([]byte(str), &data)
+	logError(err)
+	return data
+}
+
+func fromYamlArray(str string) []interface{} {
+	data := []interface{}{}
+	err := yaml.Unmarshal([]byte(str), &data)
+	logError(err)
+	return data
 }
