@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSemVerString(t *testing.T) {
+func TestRender(t *testing.T) {
 	assert := assert.New(t)
 	test := func(input string, expectedOutput string, data RenderData) {
 		actualOutput, err := Render(data, input)
