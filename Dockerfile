@@ -1,4 +1,4 @@
-FROM alpine:3.20.0
+FROM alpine:3.20.3
 RUN apk upgrade --update --no-cache
 ENTRYPOINT ["/bin/go-template"]
 COPY go-template /bin/go-template
